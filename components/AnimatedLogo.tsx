@@ -15,14 +15,14 @@ const letterVariants: Variants = {
     scaleY: 1,
     filter: [
       'drop-shadow(0px 0px 0px rgba(166, 23, 23, 0))',
-      'drop-shadow(0px 0px 8px rgba(166, 23, 23, 1))',
+      'drop-shadow(0px 0px 14px rgba(166, 23, 23, 1))',
       'drop-shadow(0px 0px 0px rgba(166, 23, 23, 0))'
     ],
     transition: {
       y: { type: 'spring', stiffness: 600, damping: 18, mass: 0.8 },
       scaleY: { type: 'spring', stiffness: 600, damping: 18, mass: 0.8 },
       opacity: { duration: 0.08, ease: 'easeOut' },
-      filter: { duration: 0.6, ease: 'easeOut', delay: 0.06, times: [0, 0.1, 1] }
+      filter: { duration: 0.6, ease: 'easeOut', delay: 0.18, times: [0, 0.1, 1] }
     }
   }
 };
@@ -32,7 +32,7 @@ const containerVariants: Variants = {
   visible: {
     transition: {
       staggerChildren: 0.07,
-      delayChildren: 0.3,
+      delayChildren: 0.2,
     }
   }
 };
