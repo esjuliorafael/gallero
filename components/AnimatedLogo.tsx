@@ -6,33 +6,39 @@ const letterVariants: Variants = {
   hidden: { 
     y: -60, 
     opacity: 0, 
-    scaleY: 1.4,
-    filter: 'drop-shadow(0px 0px 0px rgba(166, 23, 23, 0))'
+    scaleY: 1.4
   },
   visible: {
     y: 0,
     opacity: 1,
     scaleY: 1,
-    filter: [
-      'drop-shadow(0px 0px 0px rgba(166, 23, 23, 0))',
-      'drop-shadow(0px 0px 14px rgba(166, 23, 23, 1))',
-      'drop-shadow(0px 0px 0px rgba(166, 23, 23, 0))'
-    ],
     transition: {
       y: { type: 'spring', stiffness: 600, damping: 18, mass: 0.8 },
       scaleY: { type: 'spring', stiffness: 600, damping: 18, mass: 0.8 },
-      opacity: { duration: 0.08, ease: 'easeOut' },
-      filter: { duration: 0.6, ease: 'easeOut', delay: 0.18, times: [0, 0.1, 1] }
+      opacity: { duration: 0.08, ease: 'easeOut' }
     }
   }
 };
 
 const containerVariants: Variants = {
-  hidden: {},
+  hidden: {
+    filter: 'drop-shadow(0px 0px 0px rgba(166, 23, 23, 0))'
+  },
   visible: {
+    filter: [
+      'drop-shadow(0px 0px 0px rgba(166, 23, 23, 0))',
+      'drop-shadow(0px 0px 40px rgba(166, 23, 23, 0.9))',
+      'drop-shadow(0px 0px 0px rgba(166, 23, 23, 0))'
+    ],
     transition: {
       staggerChildren: 0.07,
       delayChildren: 0.2,
+      filter: {
+        duration: 0.8,
+        ease: 'easeOut',
+        delay: 0.2 + 6 * 0.07 + 0.18, // delayChildren + (letras-1)*stagger + tiempo de impacto
+        times: [0, 0.15, 1]
+      }
     }
   }
 };
