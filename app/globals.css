@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-top: #0D0D0D;
+  --color-bg-bottom: #000000;
+  --color-primary: #A61717;
+  --color-primary-hover: #8C1212;
+  --color-text-primary: #E6E6E6;
+  --color-text-secondary: #D3D3D3;
+  --color-border: #535353;
+  --color-placeholder: #535353;
+  --color-input-focus: #A61717;
+  --color-win: #22C55E;
+  --color-loss: #EF4444;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes slideDown {
+  from { transform: translate(-50%, -100%); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
