@@ -1,4 +1,5 @@
 import { Loader2 } from 'lucide-react';
+import { useKeyboardOpen } from '@/hooks/use-keyboard-open';
 
 interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
@@ -6,8 +7,10 @@ interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 export function PrimaryButton({ children, isLoading, isFixedMobile, className = '', ...props }: PrimaryButtonProps) {
+  const isKeyboardOpen = useKeyboardOpen();
+
   return (
-    <div className={`${isFixedMobile ? 'fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20' : ''}`}>
+    <div className={`${isFixedMobile ? `fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 ${isKeyboardOpen ? 'hidden' : ''}` : ''}`}>
       <button
         {...props}
         disabled={isLoading || props.disabled}

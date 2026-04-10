@@ -6,11 +6,13 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { LegalText } from '@/components/LegalText';
 import { AnimatedLogo } from '@/components/AnimatedLogo';
 import { motion, AnimatePresence } from 'motion/react';
+import { useKeyboardOpen } from '@/hooks/use-keyboard-open';
 
 export default function WelcomePage() {
   const router = useRouter();
   const [isDesktop, setIsDesktop] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const isKeyboardOpen = useKeyboardOpen();
 
   useEffect(() => {
     const checkDesktop = () => {
@@ -42,7 +44,7 @@ export default function WelcomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="fixed bottom-0 left-0 right-0 p-[24px] flex flex-col gap-[8px] z-20"
+            className={`fixed bottom-0 left-0 right-0 p-[24px] flex flex-col gap-[8px] z-20 ${isKeyboardOpen ? 'hidden' : ''}`}
           >
             <PrimaryButton onClick={() => router.push('/login')}>
               Iniciar sesión

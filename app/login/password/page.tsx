@@ -8,12 +8,14 @@ import { PinInput } from '@/components/PinInput';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { SecondaryLink } from '@/components/SecondaryLink';
 import { Toast } from '@/components/Toast';
+import { useKeyboardOpen } from '@/hooks/use-keyboard-open';
 
 export default function LoginPasswordPage() {
   const router = useRouter();
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const isKeyboardOpen = useKeyboardOpen();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +50,7 @@ export default function LoginPasswordPage() {
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col">
         <PinInput value={pin} onChange={(val) => { setPin(val); setError(false); }} error={error} />
         
-        <div className="fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 mt-4 flex flex-col">
+        <div className={`fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 mt-4 flex flex-col ${isKeyboardOpen ? 'hidden' : ''}`}>
           <PrimaryButton type="submit" disabled={pin.length < 4}>
             Iniciar sesión
           </PrimaryButton>

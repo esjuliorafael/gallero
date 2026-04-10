@@ -8,12 +8,14 @@ import { CountryCodePicker } from '@/components/CountryCodePicker';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LegalText } from '@/components/LegalText';
 import Link from 'next/link';
+import { useKeyboardOpen } from '@/hooks/use-keyboard-open';
 
 export default function RegisterPhonePage() {
   const router = useRouter();
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const isKeyboardOpen = useKeyboardOpen();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +60,7 @@ export default function RegisterPhonePage() {
           </p>
         )}
         
-        <div className="fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 mt-4 flex flex-col">
+        <div className={`fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 mt-4 flex flex-col ${isKeyboardOpen ? 'hidden' : ''}`}>
           <PrimaryButton type="submit" isLoading={isLoading} disabled={phone.length < 10}>
             Enviar
           </PrimaryButton>

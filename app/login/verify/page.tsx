@@ -7,12 +7,14 @@ import { Title, Description } from '@/components/Typography';
 import { TextInput } from '@/components/TextInput';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { SecondaryLink } from '@/components/SecondaryLink';
+import { useKeyboardOpen } from '@/hooks/use-keyboard-open';
 
 export default function VerifyPage() {
   const router = useRouter();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(60);
+  const isKeyboardOpen = useKeyboardOpen();
 
   useEffect(() => {
     if (countdown > 0) {
@@ -58,7 +60,7 @@ export default function VerifyPage() {
           error={error}
         />
         
-        <div className="fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 mt-4 flex flex-col">
+        <div className={`fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 mt-4 flex flex-col ${isKeyboardOpen ? 'hidden' : ''}`}>
           <PrimaryButton type="submit" disabled={code.length === 0}>
             Verificar
           </PrimaryButton>
