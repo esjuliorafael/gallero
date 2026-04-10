@@ -1,19 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const KEYBOARD_THRESHOLD = 150
-
 export function useKeyboardOpen(): boolean {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
 
   useEffect(() => {
-    const detect = () => {
-      const vv = window.visualViewport
-      if (vv) {
-        setIsKeyboardOpen(window.innerHeight - vv.height > KEYBOARD_THRESHOLD)
-      }
-    }
-
     const handleFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement
       if (
@@ -22,22 +13,27 @@ export function useKeyboardOpen(): boolean {
         target instanceof HTMLSelectElement ||
         target.isContentEditable
       ) {
-        setTimeout(detect, 300)
+        setIsKeyboardOpen(true)
       }
     }
 
     const handleFocusOut = () => {
-      setTimeout(detect, 300)
+      // Small delay so the state doesn't flicker when moving between inputs
+      setTimeout(() => {
+        const active = document.activeElement
+        const isInput =
+          active instanceof HTMLInputElement ||
+          active instanceof HTMLTextAreaElement ||
+          active instanceof HTMLSelectElement ||
+          (active instanceof HTMLElement && active.isContentEditable)
+        if (!isInput) setIsKeyboardOpen(false)
+      }, 100)
     }
 
-    const vv = window.visualViewport
-    if (vv) vv.addEventListener('resize', detect)
     document.addEventListener('focusin', handleFocusIn)
     document.addEventListener('focusout', handleFocusOut)
-    detect()
 
     return () => {
-      if (vv) vv.removeEventListener('resize', detect)
       document.removeEventListener('focusin', handleFocusIn)
       document.removeEventListener('focusout', handleFocusOut)
     }
