@@ -41,7 +41,7 @@ export default function WelcomePage() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
             className="fixed bottom-0 left-0 right-0 p-[24px] flex flex-col gap-[8px] z-20"
           >
             <PrimaryButton onClick={() => router.push('/login')}>
