@@ -5,11 +5,13 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Logo } from '@/components/Logo';
+import { useKeyboardOpen } from '@/hooks/use-keyboard-open';
 
 export default function AuthLayout({ children, showBack = true }: { children: React.ReactNode, showBack?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
+  const isKeyboardOpen = useKeyboardOpen();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -45,7 +47,7 @@ export default function AuthLayout({ children, showBack = true }: { children: Re
       </header>
 
       {/* Content Area */}
-      <main className="flex-1 flex flex-col justify-center md:items-center md:justify-center px-[24px] md:px-0 pt-[72px] md:pt-0 pb-[120px] md:pb-0">
+      <main className={`flex-1 flex flex-col justify-center md:items-center md:justify-center px-[24px] md:px-0 pt-[72px] md:pt-0 ${isKeyboardOpen ? 'pb-0' : 'pb-[120px]'} md:pb-0`}>
         <div className="w-full md:w-[300px] flex flex-col">
           {children}
         </div>
