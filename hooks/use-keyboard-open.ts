@@ -10,7 +10,7 @@ export function useKeyboardOpen(): boolean {
     const detect = () => {
       const vv = window.visualViewport
       if (vv) {
-        setIsKeyboardOpen(window.screen.height - vv.height > KEYBOARD_THRESHOLD)
+        setIsKeyboardOpen(window.innerHeight - vv.height > KEYBOARD_THRESHOLD)
       }
     }
 
