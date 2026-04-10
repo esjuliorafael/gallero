@@ -48,13 +48,13 @@ export default function LoginPasswordPage() {
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col">
         <PinInput value={pin} onChange={(val) => { setPin(val); setError(false); }} error={error} />
         
-        <div className="mt-6 md:mt-6">
+        <div className="mt-4">
           <PrimaryButton type="submit" isFixedMobile disabled={pin.length < 4}>
             Iniciar sesión
           </PrimaryButton>
         </div>
         
-        <div className="mt-2 md:mt-2">
+        <div className="mt-2">
           <SecondaryLink text="" linkText="¿Olvidaste tu contraseña?" href="/login/recovery" />
         </div>
       </form>

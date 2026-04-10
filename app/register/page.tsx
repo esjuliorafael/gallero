@@ -59,13 +59,13 @@ export default function RegisterPage() {
           </div>
         </div>
         
-        <div className="mt-4 md:mt-4">
+        <div className="mt-4">
           <PrimaryButton type="submit" isFixedMobile disabled={!firstName || !lastName}>
             Registrarme
           </PrimaryButton>
         </div>
         
-        <div className="mt-2 md:mt-2">
+        <div className="mt-2">
           <LegalText />
         </div>
       </form>

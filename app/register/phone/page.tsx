@@ -58,13 +58,13 @@ export default function RegisterPhonePage() {
           </p>
         )}
         
-        <div className="mt-4 md:mt-4">
+        <div className="mt-4">
           <PrimaryButton type="submit" isFixedMobile isLoading={isLoading} disabled={phone.length < 10}>
             Enviar
           </PrimaryButton>
         </div>
         
-        <div className="mt-2 md:mt-2">
+        <div className="mt-2">
           <LegalText />
         </div>
       </form>

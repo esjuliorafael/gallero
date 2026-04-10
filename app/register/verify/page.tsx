@@ -58,13 +58,13 @@ export default function RegisterVerifyPage() {
           error={error}
         />
         
-        <div className="mt-4 md:mt-4">
+        <div className="mt-4">
           <PrimaryButton type="submit" isFixedMobile disabled={code.length === 0}>
             Verificar
           </PrimaryButton>
         </div>
         
-        <div className="mt-2 md:mt-2">
+        <div className="mt-2">
           {countdown > 0 ? (
             <SecondaryLink text="¿No has recibido el código?" linkText={`Reenviar en 0:${countdown.toString().padStart(2, '0')}`} href="#" disabled />
           ) : (

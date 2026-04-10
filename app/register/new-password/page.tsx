@@ -51,7 +51,7 @@ export default function RegisterNewPasswordPage() {
         <PinInput value={pin} onChange={(val) => { setPin(val); setErrorMsg(''); }} error={!!errorMsg} />
         {errorMsg && <p className="text-[#EF4444] text-[11px] font-normal text-center mt-2">{errorMsg}</p>}
         
-        <div className="mt-6 md:mt-6">
+        <div className="mt-4">
           <PrimaryButton type="submit" isFixedMobile disabled={pin.length < 4}>
             Crear contraseña
           </PrimaryButton>

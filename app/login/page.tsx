@@ -41,13 +41,13 @@ export default function LoginPage() {
           placeholder="Número de celular"
         />
         
-        <div className="mt-4 md:mt-4">
+        <div className="mt-4">
           <PrimaryButton type="submit" isFixedMobile disabled={phone.length < 10}>
             Iniciar sesión
           </PrimaryButton>
         </div>
         
-        <div className="mt-2 md:mt-2">
+        <div className="mt-2">
           <SecondaryLink text="¿No tienes cuenta?" linkText="Regístrate" href="/register" />
         </div>
       </form>
