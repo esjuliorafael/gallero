@@ -58,14 +58,13 @@ export default function RegisterPhonePage() {
           </p>
         )}
         
-        <div className="mt-4">
-          <PrimaryButton type="submit" isFixedMobile isLoading={isLoading} disabled={phone.length < 10}>
+        <div className="fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 mt-4 flex flex-col">
+          <PrimaryButton type="submit" isLoading={isLoading} disabled={phone.length < 10}>
             Enviar
           </PrimaryButton>
-        </div>
-        
-        <div className="mt-2">
-          <LegalText />
+          <div className="mt-2">
+            <LegalText />
+          </div>
         </div>
       </form>
     </AuthLayout>

@@ -59,14 +59,13 @@ export default function RegisterPage() {
           </div>
         </div>
         
-        <div className="mt-4">
-          <PrimaryButton type="submit" isFixedMobile disabled={!firstName || !lastName}>
+        <div className="fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 mt-4 flex flex-col">
+          <PrimaryButton type="submit" disabled={!firstName || !lastName}>
             Registrarme
           </PrimaryButton>
-        </div>
-        
-        <div className="mt-2">
-          <LegalText />
+          <div className="mt-2">
+            <LegalText />
+          </div>
         </div>
       </form>
     </AuthLayout>

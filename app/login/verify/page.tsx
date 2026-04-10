@@ -58,18 +58,17 @@ export default function VerifyPage() {
           error={error}
         />
         
-        <div className="mt-4">
-          <PrimaryButton type="submit" isFixedMobile disabled={code.length === 0}>
+        <div className="fixed bottom-0 left-0 right-0 p-[24px] md:static md:p-0 bg-gradient-to-t from-[#000000] to-transparent md:bg-none z-20 mt-4 flex flex-col">
+          <PrimaryButton type="submit" disabled={code.length === 0}>
             Verificar
           </PrimaryButton>
-        </div>
-        
-        <div className="mt-2">
-          {countdown > 0 ? (
-            <SecondaryLink text="¿No has recibido el código?" linkText={`Reenviar en 0:${countdown.toString().padStart(2, '0')}`} href="#" disabled />
-          ) : (
-            <SecondaryLink text="¿No has recibido el código?" linkText="Reenviar" href="#" onClick={handleResend} />
-          )}
+          <div className="mt-2">
+            {countdown > 0 ? (
+              <SecondaryLink text="¿No has recibido el código?" linkText={`Reenviar en 0:${countdown.toString().padStart(2, '0')}`} href="#" disabled />
+            ) : (
+              <SecondaryLink text="¿No has recibido el código?" linkText="Reenviar" href="#" onClick={handleResend} />
+            )}
+          </div>
         </div>
       </form>
     </AuthLayout>
