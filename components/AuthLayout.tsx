@@ -45,7 +45,7 @@ export default function AuthLayout({ children, showBack = true }: { children: Re
       </header>
 
       {/* Content Area */}
-      <main className="flex-1 flex flex-col md:items-center md:justify-center px-[24px] md:px-0 pt-[96px] md:pt-0 pb-[120px] md:pb-0">
+      <main className="flex-1 flex flex-col justify-center md:items-center md:justify-center px-[24px] md:px-0 pt-[72px] md:pt-0 pb-[120px] md:pb-0">
         <div className="w-full md:w-[300px] flex flex-col gap-[16px]">
           {children}
         </div>
