@@ -41,11 +41,18 @@ enum BetSide {
   GREEN
 }
 
+enum UserRole {
+  BETTOR
+  ADMIN
+  HOUSE
+}
+
 model User {
   id            String   @id @default(uuid())
   phone         String
   full_name     String
   password_hash String
+  role          UserRole @default(BETTOR)
   created_at    DateTime @default(now())
 
   wallet        Wallet?
@@ -139,4 +146,15 @@ model BetMatchLeg {
   bet_order                 BetOrder @relation(fields: [bet_order_id], references: [id])
 
   @@map("bet_match_legs")
+}
+
+model OtpCode {
+  id         String   @id @default(uuid())
+  phone      String
+  code       String
+  is_used    Boolean  @default(false)
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  @@map("otp_codes")
 }
