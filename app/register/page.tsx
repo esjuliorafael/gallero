@@ -12,7 +12,6 @@ import { useKeyboardOpen } from '@/hooks/use-keyboard-open';
 export default function RegisterPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState('');
-  const [error, setError] = useState('');
   const isKeyboardOpen = useKeyboardOpen();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -37,9 +36,8 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col">
         <TextInput
           value={fullName}
-          onChange={(e) => { setFullName(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')); setError(''); }}
+          onChange={(e) => setFullName(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''))}
           placeholder="Nombre completo"
-          error={error}
           enterKeyHint="go"
         />
         
