@@ -58,6 +58,7 @@ model User {
   wallet        Wallet?
   bet_orders    BetOrder[]
 
+  @@unique([phone])
   @@map("users")
 }
 
@@ -156,5 +157,6 @@ model OtpCode {
   expires_at DateTime
   created_at DateTime @default(now())
 
+  @@index([phone])
   @@map("otp_codes")
 }

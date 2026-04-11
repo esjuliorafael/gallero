@@ -1,6 +1,7 @@
 import { prisma } from '../../lib/prisma';
 import { sendWhatsAppMessage } from '../../lib/evolution.client';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 export async function requestOtp(phone: string): Promise<void> {
   await prisma.otpCode.updateMany({
@@ -47,7 +48,7 @@ export async function verifyOtp(
     data: { is_used: true }
   });
 
-  let user = await prisma.user.findFirst({ where: { phone } });
+  let user = await prisma.user.findUnique({ where: { phone } });
   let isNewUser = false;
 
   if (!user) {
@@ -84,4 +85,48 @@ export async function verifyOtp(
   );
 
   return { token, isNewUser };
+}
+
+export async function setPin(
+  userId: string,
+  pin: string
+): Promise<void> {
+  const hash = await bcrypt.hash(pin, 10);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password_hash: hash }
+  });
+}
+
+export async function loginWithPin(
+  phone: string,
+  pin: string
+): Promise<{ token: string }> {
+  const user = await prisma.user.findUnique({ where: { phone } });
+  
+  if (!user) {
+    throw new Error("Credenciales inválidas");
+  }
+  
+  if (user.password_hash === '') {
+    throw new Error("PIN no configurado");
+  }
+  
+  const isValid = await bcrypt.compare(pin, user.password_hash);
+  if (!isValid) {
+    throw new Error("Credenciales inválidas");
+  }
+  
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined");
+  }
+  
+  const token = jwt.sign(
+    { sub: user.id, phone: user.phone, role: user.role },
+    secret,
+    { expiresIn: '30d' }
+  );
+  
+  return { token };
 }

@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import prismaPlugin from './plugins/prisma.plugin';
 import redisPlugin from './plugins/redis.plugin';
+import jwtPlugin from './plugins/jwt.plugin';
 import authRoutes from './modules/auth/auth.routes';
 
 export function buildApp() {
@@ -12,6 +13,7 @@ export function buildApp() {
   app.register(cors);
   app.register(prismaPlugin);
   app.register(redisPlugin);
+  app.register(jwtPlugin);
   
   app.register(authRoutes, { prefix: '/auth' });
 
