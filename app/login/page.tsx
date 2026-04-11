@@ -52,11 +52,6 @@ export default function LoginPage() {
             <SecondaryLink text="¿No tienes cuenta?" linkText="Regístrate" href="/register" />
           </div>
         </div>
-        <p className="text-white text-xs mt-2">
-          keyboard: {isKeyboardOpen ? 'OPEN' : 'CLOSED'} |
-          innerH: {typeof window !== 'undefined' ? window.innerHeight : '?'} |
-          vvH: {typeof window !== 'undefined' && window.visualViewport ? Math.round(window.visualViewport.height) : '?'}
-        </p>
       </form>
     </AuthLayout>
   );
