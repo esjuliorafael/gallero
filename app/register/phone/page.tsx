@@ -53,6 +53,7 @@ export default function RegisterPhonePage() {
           onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setError(''); }}
           placeholder="Número de celular"
           error={error ? ' ' : undefined} // Just to trigger red border
+          enterKeyHint="go"
         />
         {error && (
           <p className="text-[#EF4444] text-[11px] font-normal mt-1">

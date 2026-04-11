@@ -49,6 +49,7 @@ export default function RegisterPage() {
               onChange={(e) => { setFirstName(e.target.value); setError(''); }}
               placeholder="Nombre(s)"
               error={error}
+              enterKeyHint="next"
             />
           </div>
           <div className="flex-1">
@@ -57,6 +58,7 @@ export default function RegisterPage() {
               onChange={(e) => { setLastName(e.target.value); setError(''); }}
               placeholder="Apellido(s)"
               error={error}
+              enterKeyHint="go"
             />
           </div>
         </div>

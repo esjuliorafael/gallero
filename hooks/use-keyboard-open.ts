@@ -1,10 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
 
+const isTouchDevice = () =>
+  typeof window !== 'undefined' &&
+  (navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches)
+
 export function useKeyboardOpen(): boolean {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
 
   useEffect(() => {
+    if (!isTouchDevice()) return
+
     const handleFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement
       if (
@@ -18,7 +24,6 @@ export function useKeyboardOpen(): boolean {
     }
 
     const handleFocusOut = () => {
-      // Small delay so the state doesn't flicker when moving between inputs
       setTimeout(() => {
         const active = document.activeElement
         const isInput =

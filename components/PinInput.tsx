@@ -53,6 +53,7 @@ export function PinInput({ value, onChange, error }: PinInputProps) {
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
+          enterKeyHint="go"
           className={`w-[48px] h-[48px] bg-transparent border-2 ${error ? 'border-[#EF4444]' : 'border-[#535353] focus:border-[#A61717]'} rounded-[12px] text-center text-[#E6E6E6] font-semibold text-[24px] outline-none transition-colors`}
         />
       ))}
