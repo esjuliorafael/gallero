@@ -2,14 +2,15 @@ import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { SettlementJobData } from '../queues/settlement.queue';
 
+const BROKERAGE_RATE = new Decimal('0.10');
+
 export class SettlementService {
   constructor(private readonly prisma: PrismaClient) {}
 
   async settle(job: SettlementJobData): Promise<void> {
     const { fightId, result } = job;
 
-    // Determinar qué lado gana
-    const winningSide = result === 'DRAW' ? null : result; // null = empate
+    const winningSide = result === 'DRAW' ? null : result;
 
     // Cargar todos los BetMatch de la pelea con sus legs
     const betMatches = await this.prisma.betMatch.findMany({
@@ -29,11 +30,18 @@ export class SettlementService {
       },
     });
 
-    // Procesar cada match en su propia transacción
     for (const betMatch of betMatches) {
+      // Determinar si este match es directo DANDO vs AGARRANDO
+      // (ninguna leg proviene de una orden PAREJA)
+      const betTypes = betMatch.bet_match_legs.map(
+        (leg) => leg.bet_order.bet_type
+      );
+      const isDirectMatch =
+        betTypes.includes('DANDO_80') && betTypes.includes('AGARRANDO_80');
+
       await this.prisma.$transaction(async (tx) => {
         for (const leg of betMatch.bet_match_legs) {
-          const wallet  = leg.bet_order.user.wallet;
+          const wallet = leg.bet_order.user.wallet;
           if (!wallet) continue;
 
           const stakeContributed = new Decimal(leg.amount_staked_contributed);
@@ -60,8 +68,10 @@ export class SettlementService {
             });
 
           } else if (leg.side === winningSide) {
-            // Ganador — recibe stake + ganancia
-            const totalPayout = stakeContributed.add(targetWin);
+            // Ganador — recibe stake + ganancia neta (menos 10% de corretaje)
+            const brokerage   = targetWin.mul(BROKERAGE_RATE).toDecimalPlaces(2);
+            const netWin      = targetWin.sub(brokerage);
+            const totalPayout = stakeContributed.add(netWin);
 
             await tx.wallet.update({
               where: { id: wallet.id },
@@ -81,8 +91,19 @@ export class SettlementService {
               },
             });
 
+            // Registrar el corretaje cobrado
+            await tx.ledgerEntry.create({
+              data: {
+                wallet_id:      wallet.id,
+                type:           'HOUSE_BROKERAGE',
+                amount:         brokerage,
+                reference_type: 'bet_match_leg',
+                reference_id:   leg.id,
+              },
+            });
+
           } else {
-            // Perdedor — solo liberar el saldo congelado (ya perdido)
+            // Perdedor — liberar saldo congelado
             await tx.wallet.update({
               where: { id: wallet.id },
               data: {
@@ -90,10 +111,16 @@ export class SettlementService {
               },
             });
 
+            // Si es match directo DANDO vs AGARRANDO → no hay spread para la casa
+            // Si hay PAREJA involucrada → el diferencial es ganancia de la casa
+            const loserEntryType = isDirectMatch
+              ? 'BET_LOST'
+              : 'HOUSE_SPREAD_PROFIT';
+
             await tx.ledgerEntry.create({
               data: {
                 wallet_id:      wallet.id,
-                type:           'HOUSE_SPREAD_PROFIT',
+                type:           loserEntryType,
                 amount:         stakeContributed,
                 reference_type: 'bet_match_leg',
                 reference_id:   leg.id,
