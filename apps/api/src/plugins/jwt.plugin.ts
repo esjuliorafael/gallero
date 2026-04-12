@@ -19,6 +19,18 @@ const jwtPlugin: FastifyPluginAsync = async (fastify, options) => {
       reply.code(401).send({ error: 'No autorizado' });
     }
   });
+  
+  fastify.decorate('requireAdmin', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      await request.jwtVerify();
+      const user = request.user as any;
+      if (user.role !== 'ADMIN') {
+        return reply.code(403).send({ error: 'Acceso denegado' });
+      }
+    } catch (err) {
+      reply.code(401).send({ error: 'No autorizado' });
+    }
+  });
 };
 
 export default fp(jwtPlugin);
