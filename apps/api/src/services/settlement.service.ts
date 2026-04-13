@@ -32,7 +32,6 @@ export class SettlementService {
 
     for (const betMatch of betMatches) {
       // Determinar si este match es directo DANDO vs AGARRANDO
-      // (ninguna leg proviene de una orden PAREJA)
       const betTypes = betMatch.bet_match_legs.map(
         (leg) => leg.bet_order.bet_type
       );
@@ -56,7 +55,6 @@ export class SettlementService {
                 balance_frozen:    { decrement: stakeContributed },
               },
             });
-
             await tx.ledgerEntry.create({
               data: {
                 wallet_id:      wallet.id,
@@ -80,7 +78,6 @@ export class SettlementService {
                 balance_frozen:    { decrement: stakeContributed },
               },
             });
-
             await tx.ledgerEntry.create({
               data: {
                 wallet_id:      wallet.id,
@@ -90,12 +87,11 @@ export class SettlementService {
                 reference_id:   leg.id,
               },
             });
-
             // Registrar el corretaje cobrado
             await tx.ledgerEntry.create({
               data: {
                 wallet_id:      wallet.id,
-                type:           'HOUSE_BROKERAGE',
+                type:           'HOUSE_BROKERAGE_FEE',
                 amount:         brokerage,
                 reference_type: 'bet_match_leg',
                 reference_id:   leg.id,
@@ -110,9 +106,8 @@ export class SettlementService {
                 balance_frozen: { decrement: stakeContributed },
               },
             });
-
-            // Si es match directo DANDO vs AGARRANDO → no hay spread para la casa
-            // Si hay PAREJA involucrada → el diferencial es ganancia de la casa
+            // Match directo DANDO vs AGARRANDO → BET_LOST (sin spread)
+            // PAREJA involucrada → HOUSE_SPREAD_PROFIT
             const loserEntryType = isDirectMatch
               ? 'BET_LOST'
               : 'HOUSE_SPREAD_PROFIT';
@@ -142,6 +137,6 @@ export class SettlementService {
       data:  { status: finalStatus },
     });
 
-    console.log(`🏆 Settlement completado — pelea ${fightId} → ${finalStatus}`);
+    console.log(`\uD83C\uDFC6 Settlement completado — pelea ${fightId} → ${finalStatus}`);
   }
 }
