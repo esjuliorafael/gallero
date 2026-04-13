@@ -5,6 +5,14 @@ import { Redis } from 'ioredis';
 import { MatchmakerJobData } from '../queues/matchmaker.queue';
 import { getOrderExpiryQueue } from '../queues/order-expiry.queue';
 
+// Tipos de apuesta compatibles entre sí
+function getCompatibleTypes(myType: string): string[] {
+  if (myType === 'DANDO_80')     return ['AGARRANDO_80', 'PAREJA'];
+  if (myType === 'AGARRANDO_80') return ['DANDO_80'];
+  if (myType === 'PAREJA')       return ['PAREJA', 'DANDO_80'];
+  return [];
+}
+
 export class MatchmakerService {
   constructor(
     private readonly prisma: PrismaClient,
@@ -12,11 +20,12 @@ export class MatchmakerService {
   ) {}
 
   async tryMatch(job: MatchmakerJobData): Promise<void> {
-    const { betOrderId, fightId, side, amountStaked, targetWinAmount } = job;
+    const { betOrderId, fightId, side, amountStaked, targetWinAmount, betType } = job;
 
     const oppositeSide = side === 'RED' ? 'GREEN' : 'RED';
     const myStake      = new Decimal(amountStaked);
     const myTarget     = new Decimal(targetWinAmount);
+    const compatibleTypes = getCompatibleTypes(betType);
 
     await this.prisma.$transaction(async (tx) => {
       // 1. Verificar que nuestra orden sigue vigente
@@ -31,13 +40,13 @@ export class MatchmakerService {
       let remaining       = new Decimal(myOrder.unmatched_staked_amount);
       let remainingTarget = new Decimal(myTarget);
 
-      // 2. Buscar contrapartes compatibles (FIFO)
-      //    Solo necesitamos que tengan saldo disponible — el loop resuelve la aritmética
+      // 2. Buscar contrapartes compatibles (FIFO), filtrando por bet_type
       const candidates = await tx.betOrder.findMany({
         where: {
-          fight_id:                fightId,
-          side:                    oppositeSide,
-          status:                  { in: ['OPEN', 'PARTIALLY_MATCHED'] },
+          fight_id: fightId,
+          side: oppositeSide,
+          bet_type: { in: compatibleTypes as any },
+          status: { in: ['OPEN', 'PARTIALLY_MATCHED'] },
           unmatched_staked_amount: { gt: 0 },
         },
         orderBy: { created_at: 'asc' },
@@ -48,8 +57,8 @@ export class MatchmakerService {
       // 3. Crear BetMatch
       const betMatch = await tx.betMatch.create({
         data: {
-          fight_id:           fightId,
-          total_red_staked:   new Decimal(0),
+          fight_id: fightId,
+          total_red_staked: new Decimal(0),
           total_green_staked: new Decimal(0),
         },
       });
@@ -62,6 +71,7 @@ export class MatchmakerService {
         if (remainingTarget.lte(0)) break;
 
         const candidateUnmatched = new Decimal(candidate.unmatched_staked_amount);
+        const candidateType      = candidate.bet_type as string;
 
         // Cuánto puede aportar el candidato hacia mi target
         const contributedByCandidate = Decimal.min(candidateUnmatched, remainingTarget);
@@ -73,6 +83,33 @@ export class MatchmakerService {
           .mul(contributedByCandidate)
           .div(myTarget)
           .toDecimalPlaces(2);
+
+        // ─────────────────────────────────────────────────────────────
+        // Calcular target_win del candidato segun la combinacion de tipos
+        //
+        // DANDO_80 vs AGARRANDO_80 (match directo):
+        //   El que agarra gana lo que el que da aportó (ourContribution)
+        //
+        // DANDO_80 vs PAREJA (match asimétrico):
+        //   El PAREJA gana 1:1 lo que él mismo aportó (contributedByCandidate)
+        //   El spread (ourContribution - contributedByCandidate) va a la casa
+        //
+        // PAREJA vs PAREJA:
+        //   Ambos ganan 1:1 lo que el otro aportó
+        // ─────────────────────────────────────────────────────────────
+        let candidateTargetWin: Decimal;
+
+        if (betType === 'DANDO_80' && candidateType === 'PAREJA') {
+          // El PAREJA gana exactamente lo que aportó (1:1)
+          candidateTargetWin = contributedByCandidate;
+        } else if (betType === 'PAREJA' && candidateType === 'DANDO_80') {
+          // Nosotros somos PAREJA, el candidato es DANDO_80
+          // El candidato DANDO_80 gana 1:1 lo que nosotros aportamos
+          candidateTargetWin = ourContribution;
+        } else {
+          // Match directo: DANDO_80 vs AGARRANDO_80 o PAREJA vs PAREJA
+          candidateTargetWin = ourContribution;
+        }
 
         await tx.betMatchLeg.create({
           data: {
@@ -90,12 +127,11 @@ export class MatchmakerService {
             bet_order_id:              candidate.id,
             side:                      oppositeSide,
             amount_staked_contributed: contributedByCandidate,
-            target_win_contributed:    ourContribution,
+            target_win_contributed:    candidateTargetWin,
           },
         });
 
         const newCandidateUnmatched = candidateUnmatched.sub(contributedByCandidate);
-
         await tx.betOrder.update({
           where: { id: candidate.id },
           data: {
