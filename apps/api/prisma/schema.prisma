@@ -42,6 +42,12 @@ enum BetSide {
   GREEN
 }
 
+enum BetType {
+  DANDO_80
+  AGARRANDO_80
+  PAREJA
+}
+
 enum UserRole {
   BETTOR
   ADMIN
@@ -49,30 +55,26 @@ enum UserRole {
 }
 
 model User {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   phone         String
   full_name     String
   password_hash String
-  role          UserRole @default(BETTOR)
-  created_at    DateTime @default(now())
-
+  role          UserRole  @default(BETTOR)
+  created_at    DateTime  @default(now())
   wallet        Wallet?
   bet_orders    BetOrder[]
-
   @@unique([phone])
   @@map("users")
 }
 
 model Wallet {
-  id                String   @id @default(uuid())
-  user_id           String?  @unique // Nullable for HOUSE_WALLET
+  id                String       @id @default(uuid())
+  user_id           String?      @unique // Nullable for HOUSE_WALLET
   balance_available Decimal
   balance_frozen    Decimal
-  updated_at        DateTime @updatedAt
-
-  user              User?    @relation(fields: [user_id], references: [id])
+  updated_at        DateTime     @updatedAt
+  user              User?        @relation(fields: [user_id], references: [id])
   ledger_entries    LedgerEntry[]
-
   @@map("wallets")
 }
 
@@ -84,9 +86,7 @@ model LedgerEntry {
   reference_type String
   reference_id   String
   created_at     DateTime        @default(now())
-
   wallet         Wallet          @relation(fields: [wallet_id], references: [id])
-
   @@map("ledger_entries")
 }
 
@@ -97,10 +97,8 @@ model Fight {
   status               FightStatus @default(OPEN)
   resolving_expires_at DateTime?
   created_at           DateTime    @default(now())
-
   bet_orders           BetOrder[]
   bet_matches          BetMatch[]
-
   @@map("fights")
 }
 
@@ -109,45 +107,39 @@ model BetOrder {
   user_id                 String
   fight_id                String
   side                    BetSide
-  bet_type                String
+  bet_type                BetType
   amount_staked           Decimal
   target_win_amount       Decimal
   unmatched_staked_amount Decimal
   status                  OrderStatus
   expires_at              DateTime
   created_at              DateTime    @default(now())
-
   user                    User        @relation(fields: [user_id], references: [id])
   fight                   Fight       @relation(fields: [fight_id], references: [id])
   bet_match_legs          BetMatchLeg[]
-
   @@map("bet_orders")
 }
 
 model BetMatch {
-  id                 String   @id @default(uuid())
-  fight_id           String
-  total_red_staked   Decimal
+  id                String       @id @default(uuid())
+  fight_id          String
+  total_red_staked  Decimal
   total_green_staked Decimal
-  created_at         DateTime @default(now())
-
-  fight              Fight    @relation(fields: [fight_id], references: [id])
-  bet_match_legs     BetMatchLeg[]
-
+  created_at        DateTime     @default(now())
+  fight             Fight        @relation(fields: [fight_id], references: [id])
+  bet_match_legs    BetMatchLeg[]
   @@map("bet_matches")
 }
 
 model BetMatchLeg {
-  id                        String   @id @default(uuid())
+  id                        String    @id @default(uuid())
   bet_match_id              String
   bet_order_id              String
   side                      BetSide
   amount_staked_contributed Decimal
   target_win_contributed    Decimal
-
-  bet_match                 BetMatch @relation(fields: [bet_match_id], references: [id])
-  bet_order                 BetOrder @relation(fields: [bet_order_id], references: [id])
-
+  bet_match                 BetMatch  @relation(fields: [bet_match_id], references: [id])
+  bet_order                 BetOrder  @relation(fields: [bet_order_id], references: [id])
   @@map("bet_match_legs")
 }
 
@@ -158,7 +150,6 @@ model OtpCode {
   is_used    Boolean  @default(false)
   expires_at DateTime
   created_at DateTime @default(now())
-
   @@index([phone])
   @@map("otp_codes")
 }
