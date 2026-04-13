@@ -30,7 +30,7 @@ export async function createBet(
   // 1. Validar pelea
   const fight = await prisma.fight.findUnique({ where: { id: fight_id } });
   if (!fight) throw new Error('Pelea no encontrada');
-  if (fight.status !== 'OPEN') throw new Error('Pelea no está abierta');
+  if (fight.status !== 'OPEN') throw new Error('Pelea no est\u00e1 abierta');
 
   // 2. Validar saldo
   const wallet = await prisma.wallet.findUnique({ where: { user_id: userId } });
@@ -42,7 +42,7 @@ export async function createBet(
   const target_win_amount = calculateTargetWin(amount_staked, bet_type);
   const expires_at = new Date(Date.now() + 60 * 60 * 1000);
 
-  // 3. Transacción atómica
+  // 3. Transacci\u00f3n at\u00f3mica
   const bet = await prisma.$transaction(async (tx) => {
     await tx.wallet.update({
       where: { user_id: userId },
@@ -67,6 +67,7 @@ export async function createBet(
         user_id:                 userId,
         fight_id,
         side,
+        bet_type,
         amount_staked,
         target_win_amount,
         unmatched_staked_amount: amount_staked,
@@ -85,7 +86,7 @@ export async function createBet(
     targetWinAmount: bet.target_win_amount.toString(),
   });
 
-  // 5. Encolar expiración con delay exacto al vencimiento
+  // 5. Encolar expiraci\u00f3n con delay exacto al vencimiento
   const delayMs = expires_at.getTime() - Date.now();
   await getOrderExpiryQueue(redis).add(
     'expire-order',
@@ -97,7 +98,7 @@ export async function createBet(
     },
     {
       delay: delayMs,
-      jobId: `expiry-${bet.id}`, // ID único para poder cancelarlo si se matchea antes
+      jobId: `expiry-${bet.id}`,
     }
   );
 
@@ -117,6 +118,7 @@ export async function getMyBets(userId: string, page: number, limit: number) {
         id:                      true,
         fight_id:                true,
         side:                    true,
+        bet_type:                true,
         amount_staked:           true,
         target_win_amount:       true,
         unmatched_staked_amount: true,
