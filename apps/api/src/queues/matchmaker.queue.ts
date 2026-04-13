@@ -2,11 +2,12 @@ import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 
 export interface MatchmakerJobData {
-  betOrderId: string;
-  fightId:    string;
-  side:       'RED' | 'GREEN';
-  amountStaked:      string;
-  targetWinAmount:   string;
+  betOrderId:      string;
+  fightId:         string;
+  side:            'RED' | 'GREEN';
+  amountStaked:    string;
+  targetWinAmount: string;
+  betType:         string;
 }
 
 let matchmakerQueue: Queue<MatchmakerJobData> | null = null;
