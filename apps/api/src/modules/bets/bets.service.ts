@@ -32,7 +32,7 @@ export async function createBet(
   if (!fight) throw new Error('Pelea no encontrada');
   if (fight.status !== 'OPEN') throw new Error('Pelea no est\u00e1 abierta');
 
-  // 2. Validar saldo
+  // 2. Verificar saldo
   const wallet = await prisma.wallet.findUnique({ where: { user_id: userId } });
   if (!wallet) throw new Error('Wallet no encontrada');
   if (new Decimal(wallet.balance_available).lt(amount_staked)) {
@@ -84,6 +84,7 @@ export async function createBet(
     side:            bet.side,
     amountStaked:    bet.amount_staked.toString(),
     targetWinAmount: bet.target_win_amount.toString(),
+    betType:         bet.bet_type,
   });
 
   // 5. Encolar expiraci\u00f3n con delay exacto al vencimiento
@@ -93,8 +94,8 @@ export async function createBet(
     {
       betOrderId: bet.id,
       userId,
-      walletId:   wallet.id,
-      amount:     bet.unmatched_staked_amount.toString(),
+      walletId:  wallet.id,
+      amount:    bet.unmatched_staked_amount.toString(),
     },
     {
       delay: delayMs,
@@ -103,40 +104,4 @@ export async function createBet(
   );
 
   return bet;
-}
-
-export async function getMyBets(userId: string, page: number, limit: number) {
-  const skip = (page - 1) * limit;
-
-  const [orders, total] = await Promise.all([
-    prisma.betOrder.findMany({
-      where:   { user_id: userId },
-      orderBy: { created_at: 'desc' },
-      skip,
-      take: limit,
-      select: {
-        id:                      true,
-        fight_id:                true,
-        side:                    true,
-        bet_type:                true,
-        amount_staked:           true,
-        target_win_amount:       true,
-        unmatched_staked_amount: true,
-        status:                  true,
-        expires_at:              true,
-        created_at:              true,
-      },
-    }),
-    prisma.betOrder.count({ where: { user_id: userId } }),
-  ]);
-
-  return {
-    data: orders,
-    pagination: {
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-    },
-  };
 }
