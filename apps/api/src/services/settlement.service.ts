@@ -5,6 +5,23 @@ import { SettlementJobData } from '../queues/settlement.queue';
 const BROKERAGE_RATE  = new Decimal('0.10');
 const HOUSE_WALLET_ID = process.env.HOUSE_WALLET_ID!;
 
+type BetType = 'PAREJA' | 'DANDO_90' | 'DANDO_80' | 'AGARRANDO_90' | 'AGARRANDO_80';
+
+/**
+ * Determina si un BetMatch es directo (DANDO vs AGARRANDO).
+ * Un match es directo cuando los dos tipos de apuesta son inversos entre si:
+ *   DANDO_80 <-> AGARRANDO_80
+ *   DANDO_90 <-> AGARRANDO_90
+ * En cualquier otro caso (PAREJA involucrada) es asimetrico y hay spread potencial.
+ */
+function isDirectMatch(betTypes: BetType[]): boolean {
+  const has = (t: BetType) => betTypes.includes(t);
+  return (
+    (has('DANDO_80') && has('AGARRANDO_80')) ||
+    (has('DANDO_90') && has('AGARRANDO_90'))
+  );
+}
+
 export class SettlementService {
   constructor(private readonly prisma: PrismaClient) {}
 
@@ -13,7 +30,6 @@ export class SettlementService {
 
     const winningSide = result === 'DRAW' ? null : result;
 
-    // Cargar todos los BetMatch de la pelea con sus legs
     const betMatches = await this.prisma.betMatch.findMany({
       where: { fight_id: fightId },
       include: {
@@ -21,9 +37,7 @@ export class SettlementService {
           include: {
             bet_order: {
               include: {
-                user: {
-                  include: { wallet: true },
-                },
+                user: { include: { wallet: true } },
               },
             },
           },
@@ -32,23 +46,21 @@ export class SettlementService {
     });
 
     for (const betMatch of betMatches) {
-      // Determinar si este match es directo DANDO vs AGARRANDO
       const betTypes = betMatch.bet_match_legs.map(
-        (leg) => leg.bet_order.bet_type
+        (leg) => leg.bet_order.bet_type as BetType
       );
-      const isDirectMatch =
-        betTypes.includes('DANDO_80') && betTypes.includes('AGARRANDO_80');
+      const direct = isDirectMatch(betTypes);
 
       await this.prisma.$transaction(async (tx) => {
         for (const leg of betMatch.bet_match_legs) {
-          const wallet         = leg.bet_order.user.wallet;
+          const wallet = leg.bet_order.user.wallet;
           if (!wallet) continue;
 
           const stakeContributed = new Decimal(leg.amount_staked_contributed);
           const targetWin        = new Decimal(leg.target_win_contributed);
 
+          // ── EMPATE: devolver stake a todos ──────────────────────────────────
           if (result === 'DRAW') {
-            // Empate — devolver stake a todos
             await tx.wallet.update({
               where: { id: wallet.id },
               data: {
@@ -65,11 +77,13 @@ export class SettlementService {
                 reference_id:   leg.id,
               },
             });
+            continue;
+          }
 
-          } else if (leg.side === winningSide) {
-            // Ganador — recibe stake + ganancia neta (menos 10% de corretaje)
-            const brokerage  = targetWin.mul(BROKERAGE_RATE).toDecimalPlaces(2);
-            const netWin     = targetWin.sub(brokerage);
+          // ── GANADOR ─────────────────────────────────────────────────────────
+          if (leg.side === winningSide) {
+            const brokerage   = targetWin.mul(BROKERAGE_RATE).toDecimalPlaces(2);
+            const netWin      = targetWin.sub(brokerage);
             const totalPayout = stakeContributed.add(netWin);
 
             await tx.wallet.update({
@@ -88,7 +102,6 @@ export class SettlementService {
                 reference_id:   leg.id,
               },
             });
-            // Registrar el corretaje cobrado
             await tx.ledgerEntry.create({
               data: {
                 wallet_id:      wallet.id,
@@ -104,10 +117,20 @@ export class SettlementService {
                 where: { id: HOUSE_WALLET_ID },
                 data: { balance_available: { increment: brokerage } },
               });
+              await tx.ledgerEntry.create({
+                data: {
+                  wallet_id:      HOUSE_WALLET_ID,
+                  type:           'HOUSE_BROKERAGE_FEE',
+                  amount:         brokerage,
+                  reference_type: 'bet_match_leg',
+                  reference_id:   leg.id,
+                },
+              });
             }
 
+          // ── PERDEDOR ────────────────────────────────────────────────────────
           } else {
-            // Perdedor — liberar saldo congelado
+            // Liberar saldo congelado (ya no esta en la wallet, fue perdido)
             await tx.wallet.update({
               where: { id: wallet.id },
               data: {
@@ -115,8 +138,8 @@ export class SettlementService {
               },
             });
 
-            if (isDirectMatch) {
-              // Match directo DANDO vs AGARRANDO — sin spread
+            if (direct) {
+              // Match directo: sin spread, solo registrar perdida
               await tx.ledgerEntry.create({
                 data: {
                   wallet_id:      wallet.id,
@@ -127,16 +150,16 @@ export class SettlementService {
                 },
               });
             } else {
-              // Match asimetrico DANDO vs PAREJA
-              // El perdedor es el DANDO; el spread es (stakeContributed - totalPagadoAGanadores)
-              // targetWin del leg del perdedor = cuanto se le pago al ganador desde su stake
-              // spread = stakeContributed - targetWin
+              // Match asimetrico (DANDO perdedor vs PAREJA ganadores):
+              // stakeContributed = lo que el DANDO puso en juego en este leg
+              // targetWin        = lo que se pago al ganador desde el stake del DANDO
+              // spread           = stakeContributed - targetWin  (va a la casa)
               const spread = stakeContributed.sub(targetWin).toDecimalPlaces(2);
 
               await tx.ledgerEntry.create({
                 data: {
                   wallet_id:      wallet.id,
-                  type:           'HOUSE_SPREAD_PROFIT',
+                  type:           'BET_LOST',
                   amount:         stakeContributed,
                   reference_type: 'bet_match_leg',
                   reference_id:   leg.id,
@@ -165,7 +188,6 @@ export class SettlementService {
       });
     }
 
-    // Marcar la pelea como finalizada
     const finalStatus =
       result === 'RED'   ? 'FINISHED_RED'   :
       result === 'GREEN' ? 'FINISHED_GREEN' :
@@ -176,6 +198,6 @@ export class SettlementService {
       data:  { status: finalStatus },
     });
 
-    console.log(`🏆 Settlement completado — pelea ${fightId} → ${finalStatus}`);
+    console.log(`\uD83C\uDFC6 Settlement completado \u2014 pelea ${fightId} \u2192 ${finalStatus}`);
   }
 }
