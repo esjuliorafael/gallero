@@ -30,7 +30,7 @@ export async function createBet(
   // 1. Validar pelea
   const fight = await prisma.fight.findUnique({ where: { id: fight_id } });
   if (!fight) throw new Error('Pelea no encontrada');
-  if (fight.status !== 'OPEN') throw new Error('Pelea no est\u00e1 abierta');
+  if (fight.status !== 'OPEN') throw new Error('Pelea no está abierta');
 
   // 2. Verificar saldo
   const wallet = await prisma.wallet.findUnique({ where: { user_id: userId } });
@@ -42,7 +42,7 @@ export async function createBet(
   const target_win_amount = calculateTargetWin(amount_staked, bet_type);
   const expires_at = new Date(Date.now() + 60 * 60 * 1000);
 
-  // 3. Transacci\u00f3n at\u00f3mica
+  // 3. Transacción atómica
   const bet = await prisma.$transaction(async (tx) => {
     await tx.wallet.update({
       where: { user_id: userId },
@@ -87,7 +87,7 @@ export async function createBet(
     betType:         bet.bet_type,
   });
 
-  // 5. Encolar expiraci\u00f3n con delay exacto al vencimiento
+  // 5. Encolar expiración con delay exacto al vencimiento
   const delayMs = expires_at.getTime() - Date.now();
   await getOrderExpiryQueue(redis).add(
     'expire-order',
@@ -104,4 +104,22 @@ export async function createBet(
   );
 
   return bet;
+}
+
+export async function getMyBets(
+  userId: string,
+  page: number,
+  limit: number
+) {
+  const skip = (page - 1) * limit;
+  const [data, total] = await Promise.all([
+    prisma.betOrder.findMany({
+      where: { user_id: userId },
+      orderBy: { created_at: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.betOrder.count({ where: { user_id: userId } }),
+  ]);
+  return { data, total, page, limit };
 }
