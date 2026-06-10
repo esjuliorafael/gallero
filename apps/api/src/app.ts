@@ -1,5 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
+import rateLimit from '@fastify/rate-limit';
 import prismaPlugin from './plugins/prisma.plugin';
 import redisPlugin from './plugins/redis.plugin';
 import jwtPlugin from './plugins/jwt.plugin';
@@ -11,11 +13,22 @@ import usersRoutes from './modules/users/users.routes';
 import walletsRoutes from './modules/wallets/wallets.routes';
 import fightsRoutes from './modules/fights/fights.routes';
 import betsRoutes from './modules/bets/bets.routes';
+import eventsRoutes from './modules/events/events.routes';
 
 export function buildApp() {
   const app = Fastify({ logger: true });
 
   app.register(cors);
+  app.register(multipart, {
+    limits: {
+      files: 1,
+      fileSize: 5 * 1024 * 1024, // 5MB
+    }
+  });
+  app.register(rateLimit, {
+    global: false,
+  });
+  
   app.register(prismaPlugin);
   app.register(redisPlugin);
   app.register(jwtPlugin);
@@ -28,6 +41,7 @@ export function buildApp() {
   app.register(walletsRoutes,{ prefix: '/wallets' });
   app.register(fightsRoutes, { prefix: '/fights' });
   app.register(betsRoutes,   { prefix: '/bets' });
+  app.register(eventsRoutes, { prefix: '/events' });
 
   return app;
 }

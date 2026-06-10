@@ -1,3 +1,4 @@
+import './config/env'; // Validate environment variables early
 import { buildApp } from './app';
 
 const start = async () => {
