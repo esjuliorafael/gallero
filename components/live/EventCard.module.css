@@ -1,0 +1,121 @@
+.card {
+  background-color: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: #A61717;
+  transform: translateY(-2px);
+  background-color: #151515;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.title {
+  color: #E6E6E6;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.priceTag {
+  background-color: #1A1A1A;
+  color: #A61717;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 800;
+  border: 1px solid #A61717;
+}
+
+.speakerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.speakerName {
+  color: #D3D3D3;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.speakerTitle {
+  color: #888888;
+  font-size: 13px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #222222;
+}
+
+.dateInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.date {
+  color: #E6E6E6;
+  font-size: 14px;
+}
+
+.time {
+  color: #888888;
+  font-size: 12px;
+}
+
+.actionButton {
+  background-color: #A61717;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionButton:active {
+  transform: scale(0.96);
+  background-color: #8C1212;
+}
+
+.actionButtonSecondary {
+  background-color: transparent;
+  color: #E6E6E6;
+  border: 1px solid #535353;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.statusApproved {
+  color: #22C55E;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

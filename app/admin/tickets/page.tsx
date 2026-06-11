@@ -30,13 +30,24 @@ export default function AdminTicketsPage() {
 
   const fetchTickets = async () => {
     try {
-      // Nota: Aquí asumo que existe un endpoint que filtra por WAITING_APPROVAL
-      // O que el admin tiene permiso para ver todos los tickets y filtramos aquí.
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/tickets/pending`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/tickets/pending`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
       const data = await response.json();
-      setTickets(data);
+      
+      if (Array.isArray(data)) {
+        setTickets(data);
+      } else {
+        console.error('API did not return an array:', data);
+        setTickets([]);
+      }
     } catch (error) {
       console.error('Error fetching tickets:', error);
+      setTickets([]);
     } finally {
       setLoading(false);
     }
