@@ -3,7 +3,9 @@ import {
   listEventsHandler, 
   getEventHandler, 
   createEventHandler, 
+  updateEventHandler,
   purchaseTicketHandler, 
+  listPendingTicketsHandler,
   approveTicketHandler 
 } from './events.controller';
 
@@ -11,7 +13,7 @@ const eventsRoutes: FastifyPluginAsync = async (fastify) => {
   // Public/User Routes
   fastify.get('/', listEventsHandler);
   fastify.get('/:id', getEventHandler);
-  
+
   fastify.post('/:id/purchase', { 
     preHandler: [fastify.authenticate],
     config: {
@@ -22,9 +24,12 @@ const eventsRoutes: FastifyPluginAsync = async (fastify) => {
     }
   }, purchaseTicketHandler);
 
-  // Admin Routes (Simplified for now, assuming role check later or specific admin middleware)
-  fastify.post('/', { preHandler: [fastify.authenticate] }, createEventHandler);
-  fastify.patch('/tickets/:id/approve', { preHandler: [fastify.authenticate] }, approveTicketHandler);
+  // Admin Routes
+  fastify.get('/tickets/pending', { preHandler: [fastify.requireAdmin] }, listPendingTicketsHandler);
+  fastify.post('/', { preHandler: [fastify.requireAdmin] }, createEventHandler);
+  fastify.patch('/:id', { preHandler: [fastify.requireAdmin] }, updateEventHandler);
+  fastify.patch('/tickets/:id/approve', { preHandler: [fastify.requireAdmin] }, approveTicketHandler);
 };
+
 
 export default eventsRoutes;

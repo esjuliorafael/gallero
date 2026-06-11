@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { createEventSchema, approveTicketSchema } from './events.schemas';
+import { createEventSchema, updateEventSchema, approveTicketSchema } from './events.schemas';
 import * as eventsService from './events.service';
 import { storageService } from '../../lib/storage.service';
 
@@ -20,6 +20,12 @@ export async function createEventHandler(request: FastifyRequest, reply: Fastify
   const body = createEventSchema.parse(request.body);
   const event = await eventsService.createEvent(body);
   return reply.code(201).send(event);
+}
+
+export async function updateEventHandler(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+  const body = updateEventSchema.parse(request.body);
+  const event = await eventsService.updateEvent(request.params.id, body);
+  return reply.send(event);
 }
 
 export async function purchaseTicketHandler(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
@@ -55,6 +61,11 @@ export async function purchaseTicketHandler(request: FastifyRequest<{ Params: { 
     request.log.error(error);
     return reply.status(500).send({ message: 'Error al procesar la subida del comprobante' });
   }
+}
+
+export async function listPendingTicketsHandler(request: FastifyRequest, reply: FastifyReply) {
+  const tickets = await eventsService.listPendingTickets();
+  return reply.send(tickets);
 }
 
 export async function approveTicketHandler(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
